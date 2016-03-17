@@ -1,0 +1,1 @@
+a:2:{i:100;a:5:{s:2:"id";s:3:"100";s:8:"username";s:5:"admin";s:8:"password";s:5:"admin";s:7:"authKey";s:10:"test100key";s:11:"accessToken";s:9:"100-token";}i:101;a:5:{s:2:"id";s:3:"101";s:8:"username";s:4:"demo";s:8:"password";s:4:"demo";s:7:"authKey";s:10:"test101key";s:11:"accessToken";s:9:"101-token";}}

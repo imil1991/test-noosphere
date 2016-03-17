@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use yii\base\Model;
+use yii\web\Cookie;
 
 /**
  * LoginForm is the model behind the login form.
@@ -38,15 +39,89 @@ class LoginForm extends Model
      *
      * @param string $attribute the attribute currently being validated
      * @param array $params the additional name-value pairs given in the rule
+     * @return bool
      */
     public function validatePassword($attribute, $params)
     {
         if (!$this->hasErrors()) {
             $user = $this->getUser();
 
-            if (!$user || !$user->validatePassword($this->password)) {
-                $this->addError($attribute, 'Incorrect username or password.');
+            do {
+                if($this->preventSpamCounter($attribute)){
+                    return false;
+                }
+
+                if (!$user || !$user->validatePassword($this->password)) {
+                    $this->addError($attribute, 'Incorrect username or password.');
+                    return false;
+                }
+
+            } while (false);
+
+            Yii::$app->response->cookies->remove('login-false');
+            return true;
+        }
+    }
+
+    /**
+     * Anti-Spam based on the allowable number of redo actions
+     * In case of exceeding this count of waiting mode turn on ($ timeout)
+     * @param string $attribute the attribute currently being validated
+     * @param string $key Key actions performed
+     * @param integer $limit allowable number of repeats
+     * @param integer $timeout cooldown attempts upon reaching a limit in seconds
+     * @param boolean $setError establish error
+     * @return boolean true - repeats limit reached, false - all ok
+     */
+    public function preventSpamCounter($attribute, $key = 'login-false', $limit = 3, $timeout = 300, $setError = true)
+    {
+        $limit = intval($limit);
+        $timeout = intval($timeout);
+        if ($limit <= 0 || $timeout <= 0) {
+            return false;
+        }
+
+        $last = isset(Yii::$app->request->cookies[$key]) ?
+            Yii::$app->request->cookies[$key]->value : '';
+        $time = time() + $timeout;
+        # the first execution of the action
+        if (empty($last)) {
+            Yii::$app->response->cookies->add(new Cookie([
+                'name' => $key,
+                'value' => 1,
+                'expire' => $time,
+            ]));
+            Yii::$app->response->cookies->add(new Cookie([
+                'name' => $key . '-expire',
+                'value' => $time,
+                'expire' => $time,
+            ]));
+
+            return false;
+        }
+
+        $counter = intval($last);
+        if ($counter < $limit) {
+            # Repeat: the limit is not reached
+            Yii::$app->response->cookies->add(new Cookie([
+                'name' => $key,
+                'value' => $counter + 1,
+                'expire' => $time,
+            ]));
+            Yii::$app->response->cookies->add(new Cookie([
+                'name' => $key . '-expire',
+                'value' => $time,
+                'expire' => $time,
+            ]));
+
+            return false;
+        } else {
+            # waiting period: please wait
+            if ($setError) {
+                $this->addError($attribute, 'Попробуйте ещё раз через ' . (Yii::$app->request->cookies[$key . '-expire']->value - YII_NOW) . ' секунд');
             }
+
+            return true;
         }
     }
 

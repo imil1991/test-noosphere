@@ -6,7 +6,13 @@ $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
+    'aliases' => [
+        '@files' => dirname(__DIR__).'/files',
+    ],
     'components' => [
+        'txtManager' => [
+            'class' => 'app\components\TxtManager',
+        ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'zU62Z5keZmdoG750H75ib-POJz3UKzSL',
