@@ -26,8 +26,8 @@ class TxtManager extends Component {
 
     /**
      * Initializes the application component.
-     * This method overrides parent implementation by loading the authorization data
-     * from PHP script.
+     * This method overrides parent implementation by loading the users data
+     * from txt file.
      */
     public function init()
     {
@@ -37,7 +37,7 @@ class TxtManager extends Component {
     }
 
     /**
-     * Loads authorization data from persistent storage.
+     * Loads users data from persistent storage.
      */
     protected function load()
     {
